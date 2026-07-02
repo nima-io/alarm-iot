@@ -8,6 +8,10 @@
 #include "ui/Feedback.h"
 #include "ui/Display.h"
 
+#ifdef ROLE_SENTINEL
+#include "sensors/Motion.h"
+#endif
+
 // ── Global FSM state (follower; Node-RED is the authority) ────────────────────
 static SystemState g_state = SystemState::DISARMED;
 
@@ -42,7 +46,8 @@ static void onMqttMessage(const char* topic, const char* payload) {
             feedbackChirpArming();
         }
 
-        // Role-specific effects (Phases 4 & 5) will be added here.
+        // Role-specific state-change effects are handled in loop() (Phase 4)
+        // and in the callback itself (Phase 5).
 
         Serial.print(F("[FSM] "));
         Serial.print(stateName(prev));
@@ -68,6 +73,10 @@ void setup() {
     wifiBegin();
     mqttBegin();
     onMessage(onMqttMessage);
+
+#ifdef ROLE_SENTINEL
+    motionBegin();
+#endif
 }
 
 void loop() {
@@ -75,4 +84,13 @@ void loop() {
     mqttTick();
     feedbackTick();
     displayTick();
+
+#ifdef ROLE_SENTINEL
+    if (motionTick() && g_state == SystemState::ARMED) {
+        JsonDocument doc;
+        doc["ts"] = millis();
+        publishJson(TOPIC_KIT_A_MOTION, doc);
+        Serial.println(F("[Motion] event published"));
+    }
+#endif
 }
