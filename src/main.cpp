@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include "secrets.h"
 
 #include "core/State.h"
 #include "config/Topics.h"
@@ -10,6 +11,10 @@
 
 #ifdef ROLE_SENTINEL
 #include "sensors/Motion.h"
+#endif
+
+#ifdef ROLE_KEYPAD
+#include "input/Defuse.h"
 #endif
 
 // ── Global FSM state (follower; Node-RED is the authority) ────────────────────
@@ -46,8 +51,14 @@ static void onMqttMessage(const char* topic, const char* payload) {
             feedbackChirpArming();
         }
 
-        // Role-specific state-change effects are handled in loop() (Phase 4)
-        // and in the callback itself (Phase 5).
+        // Phase 5: Kit B arms/disarms the defuse ritual on every state change.
+#ifdef ROLE_KEYPAD
+        if (g_state == SystemState::PRE_ALARM || g_state == SystemState::TRIGGERED) {
+            defuseArm();
+        } else {
+            defuseDisarm();
+        }
+#endif
 
         Serial.print(F("[FSM] "));
         Serial.print(stateName(prev));
@@ -77,6 +88,10 @@ void setup() {
 #ifdef ROLE_SENTINEL
     motionBegin();
 #endif
+
+#ifdef ROLE_KEYPAD
+    defuseBegin(DEFUSE_PIN);
+#endif
 }
 
 void loop() {
@@ -92,5 +107,9 @@ void loop() {
         publishJson(TOPIC_KIT_A_MOTION, doc);
         Serial.println(F("[Motion] event published"));
     }
+#endif
+
+#ifdef ROLE_KEYPAD
+    defuseTick();
 #endif
 }
