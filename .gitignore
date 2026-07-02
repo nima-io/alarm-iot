@@ -6,9 +6,6 @@
 # Secrets
 include/secrets.h
 
-# VS Code
-.vscode/
-
 # Node-RED
 nodered/.node-red/
 

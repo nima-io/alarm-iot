@@ -93,6 +93,7 @@ AlarmIoT/
 ├── implementation_plan.md         ← this document
 ├── README.md                      ← quick-start (Phase 8)
 ├── .gitignore
+├── docker-compose.yml             ← Mosquitto + Node-RED services
 ├── platformio.ini                 ← two envs: kit_a, kit_b
 ├── include/
 │   ├── secrets.example.h
@@ -136,11 +137,17 @@ Each phase ends with a **Verification** step. Do not advance until it passes.
 ### Phase 0 — Prerequisites
 
 1. Install PlatformIO extension in VS Code (already present since `platformio.ini` exists).
-2. Install Mosquitto locally (Windows installer or `choco install mosquitto`).
-3. Install Node.js LTS + Node-RED (`npm i -g --unsafe-perm node-red`) and the dashboard package (`npm i node-red-dashboard` inside `~/.node-red`).
-4. Confirm both Opla kits enumerate as COM ports when plugged in.
+2. Install Docker and the Compose plugin if not already present:
+   ```
+   sudo apt install docker.io docker-compose-plugin
+   sudo systemctl enable --now docker
+   sudo usermod -aG docker $USER   # log out and back in after this
+   ```
+3. Install `mosquitto-clients` for the CLI tools used in verification steps: `sudo apt install mosquitto-clients`.
+4. **Mosquitto and Node-RED run via Docker Compose** — no local installs needed. After first `docker compose up -d`, install the **node-red-dashboard** palette inside Node-RED: open `http://localhost:1880` → Menu → Manage Palette → Install → search `node-red-dashboard`.
+5. Confirm both Opla kits enumerate as serial devices (`ls /dev/ttyACM* /dev/ttyUSB*`) when plugged in.
 
-**Verification:** `pio --version`, `mosquitto -h`, `node-red --version` all return successfully.
+**Verification:** `pio --version` and `docker compose version` return successfully. `docker compose up -d` brings both containers up; `docker ps` shows `mosquitto` and `nodered` running.
 
 ---
 
@@ -156,7 +163,7 @@ Each phase ends with a **Verification** step. Do not advance until it passes.
   - `WIFI_SSID`, `WIFI_PASS`
   - `MQTT_HOST`, `MQTT_PORT` (default `1883`), `MQTT_USER`, `MQTT_PASS`
   - `DEFUSE_PIN` (5-char string, permutation of `12345`, e.g. `"31524"`, Kit B only — safe to leave defined on Kit A build, just unused)
-- `.gitignore` — PlatformIO defaults (`.pio/`, `.pioenvs/`, `.piolibdeps/`) plus `include/secrets.h`, `.vscode/`, `nodered/.node-red/`.
+- `.gitignore` — PlatformIO defaults (`.pio/`, `.pioenvs/`, `.piolibdeps/`) plus `include/secrets.h`, `.vscode/`, `nodered/.node-red/`, `mosquitto/passwd`.
 - Placeholder `src/main.cpp` that only prints `KIT_ID` to serial in `setup()`.
 
 **Verification:** `pio run -e kit_a` and `pio run -e kit_b` both compile. Uploading each to its kit shows the correct `KIT_ID` on the serial monitor.
@@ -177,7 +184,7 @@ Each phase ends with a **Verification** step. Do not advance until it passes.
   - `void onMessage(void (*cb)(const char* topic, const char* payload));` callback registration.
 - `src/main.cpp` updated to `wifiBegin(); mqttBegin();` in `setup()` and `wifiTick(); mqttTick();` in `loop()`. No `delay()`.
 
-**Verification:** Start Mosquitto locally. Run `mosquitto_sub -h <host> -t "alarm/#" -v`. Boot each kit; each should publish `alarm/kit_x/online 1` retained. Unplug a kit; within a few seconds the topic should show `0` (LWT).
+**Verification:** Start services with `docker compose up -d` (from the repo root; create the Mosquitto password file first — see Phase 8 / `mosquitto/README.md`). Run `mosquitto_sub -h localhost -t "alarm/#" -v`. Boot each kit; each should publish `alarm/kit_x/online 1` retained. Unplug a kit; within a few seconds the topic should show `0` (LWT).
 
 ---
 
@@ -260,7 +267,7 @@ Each phase ends with a **Verification** step. Do not advance until it passes.
 
 **Deliverables** — `nodered/flow.json` importable into Node-RED, containing:
 
-- **MQTT-broker config node** pointing at the same broker as the kits.
+- **MQTT-broker config node** pointing at the same broker as the kits. When both services run via Docker Compose, set the broker host to `mosquitto` (the Compose service name) — not `localhost` — inside the Node-RED MQTT config node.
 - **MQTT-in nodes** for:
   - `alarm/kit_a/event/motion`
   - `alarm/kit_b/event/defused`
@@ -299,13 +306,21 @@ Each phase ends with a **Verification** step. Do not advance until it passes.
 - `mosquitto/mosquitto.conf`:
   - `listener 1883`
   - `allow_anonymous false`
-  - `password_file <path>/passwd`
-- `mosquitto/README.md` — the two commands: `mosquitto_passwd -c passwd alarmiot` to create the user, and `mosquitto -c mosquitto.conf -v` to run the broker.
+  - `password_file /mosquitto/config/passwd`
+- `mosquitto/README.md` — one-time setup then compose:
+  1. Create the password file (run once before first `compose up`):
+     ```
+     docker compose run --rm mosquitto \
+       mosquitto_passwd -c /mosquitto/config/passwd alarmiot
+     ```
+  2. Start all services: `docker compose up -d`.
+  3. Stop all services: `docker compose down`.
+  4. View broker logs: `docker compose logs -f mosquitto`.
 - Root `README.md` covering:
   - Parts list (2× MKR WiFi 1010, 2× Opla carrier, host PC for broker/Node-RED).
   - Setup: fill `include/secrets.h` (copy from example), set the same values in the Node-RED MQTT config.
   - Build/upload: `pio run -e kit_a -t upload`, `pio run -e kit_b -t upload`.
-  - Run: start Mosquitto, start Node-RED, open `http://localhost:1880/ui`.
+  - Run: `docker compose up -d` from the repo root (create the Mosquitto password file first if not done). Open `http://localhost:1880/ui`.
   - The demo script (below).
   - Known limitations: plaintext MQTT (LAN only), PIN in firmware, no persistence across NR restart unless context storage enabled.
 - `docs/demo-script.md` — the 90-second demo flow used at presentation:
