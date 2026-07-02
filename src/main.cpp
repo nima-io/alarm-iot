@@ -17,6 +17,9 @@
 #include "input/Defuse.h"
 #endif
 
+#include "telemetry/Heartbeat.h"
+#include "sensors/Env.h"
+
 // ── Global FSM state (follower; Node-RED is the authority) ────────────────────
 static SystemState g_state = SystemState::DISARMED;
 
@@ -85,6 +88,9 @@ void setup() {
     mqttBegin();
     onMessage(onMqttMessage);
 
+    heartbeatBegin();
+    envBegin();
+
 #ifdef ROLE_SENTINEL
     motionBegin();
 #endif
@@ -99,6 +105,8 @@ void loop() {
     mqttTick();
     feedbackTick();
     displayTick();
+    heartbeatTick();
+    envTick();
 
 #ifdef ROLE_SENTINEL
     if (motionTick() && g_state == SystemState::ARMED) {
