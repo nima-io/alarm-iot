@@ -2,7 +2,7 @@
     {"id":"flow_main","type":"tab","label":"AlarmIoT","disabled":false,"info":"AlarmIoT FSM + dashboard. MQTT broker host = mosquitto (Compose service name)."},
     {"id":"mqtt_broker","type":"mqtt-broker","name":"Mosquitto","broker":"mosquitto","port":"1884","clientid":"nodered_alarmiot","autoConnect":true,"usetls":false,"protocolVersion":"4","keepalive":"60","cleansession":true,"birthTopic":"","birthQos":"0","birthRetain":"false","birthPayload":"","birthMsg":{},"closeTopic":"","closeQos":"0","closeRetain":"false","closePayload":"","closeMsg":{},"willTopic":"","willQos":"0","willRetain":"false","willPayload":"","willMsg":{},"sessionExpiry":"","credentials":{}},
     {"id":"dash_base","type":"ui-base","name":"AlarmIoT","path":"/ui","includeClientData":true,"acceptsClientConfig":["ui-notification","ui-control"],"showPathInSidebar":false,"showPageTitle":true,"navigationStyle":"default","titleBarStyle":"default"},
-    {"id":"dash_tab","type":"ui-page","name":"AlarmIoT","ui":"dash_base","path":"/","icon":"home","layout":"grid","theme":"","order":1,"disabled":false,"hidden":false},
+    {"id":"dash_tab","type":"ui-page","name":"AlarmIoT","ui":"dash_base","path":"/","icon":"home","layout":"grid","order":1,"disabled":false,"hidden":false},
     {"id":"grp_ctrl","type":"ui-group","name":"Status & Control","page":"dash_tab","ui":"dash_base","order":1,"disp":true,"width":"6","height":"1","collapsed":false},
     {"id":"grp_kits","type":"ui-group","name":"Kit Status","page":"dash_tab","ui":"dash_base","order":2,"disp":true,"width":"6","height":"1","collapsed":false},
     {"id":"grp_events","type":"ui-group","name":"Events","page":"dash_tab","ui":"dash_base","order":3,"disp":true,"width":"12","height":"1","collapsed":false},
