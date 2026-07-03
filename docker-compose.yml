@@ -12,7 +12,7 @@ services:
       - mosquitto_log:/mosquitto/log
 
   nodered:
-    image: nodered/node-red:4.1
+    build: ./nodered          # installs dashboard at build time
     container_name: nodered
     restart: unless-stopped
     ports:
