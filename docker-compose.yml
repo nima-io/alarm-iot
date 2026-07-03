@@ -17,14 +17,13 @@ services:
     restart: unless-stopped
     ports:
       - "1880:1880"
+    environment:
+      - FLOWS=flow.json          # matches ./nodered/flow.json
     volumes:
-      - nodered_data:/data
+      - ./nodered:/data          # flows, package.json and installed modules live here
     depends_on:
       - mosquitto
-    # When configuring the MQTT broker inside Node-RED, use host "mosquitto"
-    # (the service name above), not "localhost".
 
 volumes:
   mosquitto_data:
   mosquitto_log:
-  nodered_data:

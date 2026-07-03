@@ -11,6 +11,13 @@ include/secrets.h
 
 # Node-RED
 nodered/.node-red/
+nodered/node_modules/
+nodered/.config.nodes.json
+nodered/.config.nodes.json.backup
+nodered/flows_cred.json
+nodered/context/
+nodered/lib/
+nodered/settings.js
 
 # Mosquitto
 mosquitto/passwd
