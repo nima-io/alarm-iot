@@ -2,8 +2,8 @@
 
 ## One-time setup
 
-1. Install the **node-red-dashboard** palette inside Node-RED:
-   open `http://localhost:1880` → **Menu ☰ → Manage Palette → Install** → search `node-red-dashboard` → install.
+1. Install the **@flowfuse/node-red-dashboard** palette inside Node-RED:
+   open `http://localhost:1880` → **Menu ☰ → Manage Palette → Install** → search `@flowfuse/node-red-dashboard` → install.
 
 2. Import the flow:
    **Menu ☰ → Import → select file** → choose `nodered/flow.json` → **Import**.

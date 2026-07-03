@@ -12,7 +12,7 @@ services:
       - mosquitto_log:/mosquitto/log
 
   nodered:
-    image: nodered/node-red:4
+    image: nodered/node-red:4.1
     container_name: nodered
     restart: unless-stopped
     ports:

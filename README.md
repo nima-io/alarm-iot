@@ -36,9 +36,15 @@ Edit `include/secrets.h` and set:
 ```bash
 docker compose run --rm mosquitto \
   mosquitto_passwd -c /mosquitto/config/passwd alarmiot
+
+sudo chmod 644 mosquitto/passwd
 ```
 
 Enter the same password you put in `MQTT_PASS`.
+
+> **Note:** `docker compose run` creates the file as `root` (mode `600`).
+> The `chmod 644` makes it readable by the `mosquitto` container user (UID 1883).
+> The file stores only password hashes, so world-readable is safe.
 
 ### 3 — Start broker + Node-RED
 
@@ -49,7 +55,7 @@ docker compose up -d
 ### 4 — Set up the Node-RED dashboard
 
 1. Open `http://localhost:1880`.
-2. **Menu ☰ → Manage Palette → Install** → search `node-red-dashboard` → install.
+2. **Menu ☰ → Manage Palette → Install** → search `@flowfuse/node-red-dashboard` → install.
 3. **Menu ☰ → Import → select file** → choose `nodered/flow.json` → **Import**.
 4. Open the **Mosquitto** broker config node, enter `MQTT_USER` / `MQTT_PASS`, click **Done**.
 5. Click **Deploy**.
