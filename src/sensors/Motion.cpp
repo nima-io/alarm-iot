@@ -4,8 +4,9 @@
 #include <Arduino.h>
 
 // Digital pin wired to the HC-SR501 PIR output.
-// The Opla IoT Kit routes the PIR to D6; change here if rewired.
-static constexpr uint8_t PIR_PIN = 6;
+// Using A5 — the first Grove socket on the MKR IoT Carrier.
+// A5 is also accessible as a digital input (no conflict with carrier internals).
+static constexpr uint8_t PIR_PIN = A5;
 
 static bool     _lastLevel = false;   // previous digitalRead level
 static uint32_t _lastEvent = 0;       // millis() of the last reported event
